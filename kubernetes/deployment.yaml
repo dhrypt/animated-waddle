@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: animated-waddle
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: animated-waddle
+  template:
+    metadata:
+      labels:
+        app: animated-waddle
+    spec:
+      containers:
+        - name: animated-waddle
+          image: dhrypt/animated-waddle:latest
+          ports:
+            - containerPort: 8085
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DBNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_DBNAME
+            - name: POSTGRES_HOST
+              value: "postgresdb" # Name of the Postgres service
+            - name: POSTGRES_PORT
+              value: "5432"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: animated-waddle
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8085
+      targetPort: 8085
+  selector:
+    app: animated-waddle
